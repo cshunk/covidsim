@@ -25,10 +25,13 @@ Parameters:
 
 """
 import epyc
+import numpy as np
+import matplotlib.pyplot as plt
+
 
 from dataclasses import asdict
 
-from covidsim.experiments.variability_study import VariabilityExperiment
+from covidsim.experiments.network_variability_study import NetworkVariabilityExperiment
 from covidsim.datastructures import VariabilityStudyParams
 
 # TODO: Add UI to set / save / reload parameters.
@@ -39,27 +42,43 @@ params.pInfected = 0.002
 params.population = 5000
 params.time_scale = .5
 params.days_to_run = 350
+params.randomize_network = True
 params.network_type = 'powerlaw_cutoff'
-params.variability_method = 'constant'
-params.variability_param_1 = 0.058
-params.variability_param_2 = 1
+params.network_param_1 = 2.0
+params.network_param_2 = 100
 
+params.variability_method = 'gamma'
+params.variability_param_1 = 0.3
+params.variability_param_2 = np.linspace(0.5, 3.0, num=7)
 
 # params.intervention_1 = "18, 50, 0.5"
 # params.intervention_2 = "100, 120, 0.1"
 
+def my_func(x:float):
+    return 2*(x**2) + x + 1
+
+def derivative(f, x, d):
+    return (f(x+d) - f(x)) / d
+
 def main():
-    e = VariabilityExperiment(params)
+    xs = np.linspace(-8, 8, num=256)
+    ys = []
+    ds = []
+    for x in xs:
+        ys.append(my_func(x))
 
-    # TODO: Add capability to save study file in user-specified location
-    nb = epyc.JSONLabNotebook('variability-study.json')
-    lab = epyc.Lab(nb)
+    ys = np.array(ys)
 
-    for key in asdict(params):
-        lab[key] = asdict(params)[key]
+    d = 0.001
+    for x in xs:
+        ds.append(derivative(my_func, x, d))
 
-    lab.runExperiment(epyc.RepeatedExperiment(e, 7))
+    fig, ax = plt.subplots()
+    plt.grid(which='both')
+    plt.plot(xs, ys)
+    plt.plot(xs, ds)
 
+    plt.show()
 
 if __name__ == "__main__":
     main()

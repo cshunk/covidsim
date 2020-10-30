@@ -20,6 +20,8 @@ class StudyParams:
     pInfected: float = 0.01
 
     # Network parameters
+    randomize_network: bool = False
+    network_type: str = 'powerlaw_cutoff'
     population: int = 5000
     network_param_1: float = 2.0
     network_param_2: float = 10.0
@@ -47,7 +49,7 @@ class SeriesRange:
     high: List[float]
     low: List[float]
 
-    def create_from_list(self, data: List[List], expected_length: int = 0):
+    def create_from_list(self, data: List[List], expected_length: int = 0, smoothing: int = 0):
 
         if expected_length > 0:
             for dat_list in data:
@@ -58,6 +60,19 @@ class SeriesRange:
         std = np.std(data, axis=0)
         self.high = self.mean + std
         self.low = self.mean - std
+
+        if smoothing > 0:
+            data_cumsum = np.cumsum(np.insert(self.mean, 0, 0))
+            self.mean = ((data_cumsum[smoothing:] - data_cumsum[:-smoothing]) / float(smoothing))
+
+        if expected_length > 0:
+            if len(self.mean) < expected_length:
+                self.mean = np.append(self.mean, [0] * (len(self.mean - expected_length)))
+            if len(self.mean) > expected_length:
+                self.mean = self.mean[:expected_length]
+
+            self.high = self.high[:expected_length]
+            self.low = self.low[:expected_length]
 
         return self
 

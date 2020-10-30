@@ -9,8 +9,7 @@ import numpy as np
 
 from dataclasses import asdict
 
-from covidsim.experiments.variability_study import VariabilityExperiment, get_graphic_summary_data
-from covidsim.datastructures import VariabilityStudyParams
+from covidsim.experiments.variability_study import VariabilityExperiment
 from covidsim.utils.graph_utils import plot_series_range, ColorSchemes
 from scripts.variability_study_run import params
 
@@ -33,7 +32,7 @@ def main():
         print(f'Found no successful experiment results for those parameters.  Exiting.')
         return
 
-    res = get_graphic_summary_data(nb, params)
+    res = VariabilityExperiment.aggregate_results(nb, params)
 
     fig, ax = plt.subplots()
     plt.grid(which='both')
